@@ -1,0 +1,31 @@
+---
+title: "Taxa padronizada"
+output: html_document
+date: "2024-01-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Preparando o ambiente
+
+```{r message=FALSE, warning=FALSE}
+
+library(dplyr)
+
+```
+
+
+# Taxa de mortalidade padronizada 
+
+## Fazendo os cálculos para 2020
+
+
+
+```{r}
+
+
+
+```
+
