@@ -8,24 +8,188 @@ date: "2024-01-27"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Preparando o ambiente
+Preparando o ambiente com os pacotes necessários para a análise.
 
 ```{r message=FALSE, warning=FALSE}
 
 library(dplyr)
+library(readxl)
+library(tidyr)
 
 ```
 
+# Taxa de mortalidade padronizada
 
-# Taxa de mortalidade padronizada 
+Vamos calcular cada ano separadamente.
 
-## Fazendo os cálculos para 2020
-
-
+## Tratamentos sobre a população do Censo 2022
 
 ```{r}
 
+pop_censo <-
+  read_excel("dados/populacao_BRASIL_censo_2022.xlsx") |> 
+  filter(Idade != "Total") |> 
+  select(-Todos) |> 
+  gather(key = "Sexo", value = "Pop_censo",
+         2:3) |> 
+  mutate(Sexo = if_else(Sexo == "Homem",
+                        "Masculino","Feminino"))
 
+DT::datatable(pop_censo)
+
+```
+
+As populações para os sexos masculino e feminino são, respectivamente, 98.532.431 e 104.548.325
+
+```{r}
+
+pop_censo |> 
+  group_by(Sexo) |> 
+  summarise(populacao = sum(Pop_censo))
+  
+```
+
+## Fazendo os cálculos para 2020
+
+O primeiro passo consiste em calcular a taxa de mortalidade específica.
+
+**Houve uma quantidade considerável de valores nulos para alguns estados (ex.: Paraná). Por hora, vou retirar o estado para conseguir rodar tudo, mas tendo uma carga de dados atualizada é só rodar novamente sem o último `filter`.**
+
+```{r}
+
+sim_2020 <- read_excel("dados/redistribucao_CG_DO_2020.xlsx")
+
+sim_2020_tratado <- 
+  sim_2020 |> 
+  mutate(taxa_especifica = (obito/populacao) * 100000) |> 
+  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
+  filter(populacao != "NA")
+
+
+```
+
+Agora vamos fazer os seguintes procedimentos:
+
+1. Juntar as bases de taxa de mortalidade específica com a população padronizada pelo censo 2022;
+
+2. Calcular o total de óbitos esperados;
+
+3. Calcular a taxa de mortalidade padronizada. 
+
+```{r}
+
+sim_2020_tratado_censo <- 
+  sim_2020_tratado |> 
+  left_join(pop_censo,
+            by = c("idade"="Idade","sexo"="Sexo")) |> 
+  mutate(obitos_esperados = (Pop_censo * taxa_especifica)/100000)
+  
+```
+
+Por fim, vamos calcular a taxa padronizada. 
+
+```{r}
+
+sim_2020_padronizado <- 
+  sim_2020_tratado_censo |> 
+  group_by(ano, uf, cdmun, sexo, causa) |> 
+  summarise(total_obitos_esperados = sum(obitos_esperados)) |> 
+  mutate(total_obitos_esperados = round(total_obitos_esperados, 2)) %>% 
+  mutate(taxa_mortalidade_pad = 
+                          case_when(sexo == "Masculino" ~ 
+                                            (total_obitos_esperados/98532431) * 100000,
+                                    sexo == "Feminino" ~
+                                            (total_obitos_esperados/104548325) * 100000)) |>   
+  mutate(taxa_mortalidade_pad = round(taxa_mortalidade_pad, 2))
+
+DT::datatable(sim_2020_padronizado)
+
+```
+
+Vamos aplicar todos os procedimentos realizados para o ano de 2020, para os anos de 2021 e 2022. 
+#2021 
+
+**Houve uma quantidade considerável de valores nulos para alguns estados (ex.: Paraná). Por hora, vou retirar o estado para conseguir rodar tudo, mas tendo uma carga de dados atualizada é só rodar novamente sem o último `filter`.**
+
+```{r}
+
+sim_2021 <- read_excel("dados/redistribucao_CG_DO_2021.xlsx")
+
+sim_2021_tratado <- 
+  sim_2021 |> 
+  mutate(taxa_especifica = (obito/populacao) * 100000) |> 
+  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
+  filter(populacao != "NA")
+
+sim_2021_tratado_censo <- 
+  sim_2021_tratado |> 
+  left_join(pop_censo,
+            by = c("idade"="Idade","sexo"="Sexo")) |> 
+  mutate(obitos_esperados = 
+           (Pop_censo * taxa_especifica)/100000)
+
+sim_2021_padronizado <- 
+  sim_2021_tratado_censo |> 
+  group_by(ano, uf, cdmun, sexo, causa) |> 
+  summarise(total_obitos_esperados = sum(obitos_esperados)) |> 
+  mutate(total_obitos_esperados = round(total_obitos_esperados, 2)) %>% 
+  mutate(taxa_mortalidade_pad = 
+                          case_when(sexo == "Masculino" ~ 
+                                            (total_obitos_esperados/98532431) * 100000,
+                                    sexo == "Feminino" ~
+                                            (total_obitos_esperados/104548325) * 100000)) |>   
+  mutate(taxa_mortalidade_pad = round(taxa_mortalidade_pad, 2))
+
+DT::datatable(sim_2021_padronizado)
+
+
+```
+
+# 2022 
+
+```{r}
+
+sim_2022 <- read_excel("dados/redistribucao_CG_DO_2022.xlsx")
+
+sim_2022_tratado <- 
+  sim_2022 |> 
+  mutate(taxa_especifica = (obito/populacao) * 100000) |> 
+  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
+  filter(populacao != "NA")
+
+sim_2022_tratado_censo <- 
+  sim_2022_tratado |> 
+  left_join(pop_censo,
+            by = c("idade"="Idade","sexo"="Sexo")) |> 
+  mutate(obitos_esperados = 
+           (Pop_censo * taxa_especifica)/100000)
+
+sim_2022_padronizado <- 
+  sim_2022_tratado_censo |> 
+  group_by(ano, uf, cdmun, sexo, causa) |> 
+  summarise(total_obitos_esperados = sum(obitos_esperados)) |> 
+  mutate(total_obitos_esperados = round(total_obitos_esperados, 2)) %>% 
+  mutate(taxa_mortalidade_pad = 
+                          case_when(sexo == "Masculino" ~ 
+                                            (total_obitos_esperados/98532431) * 100000,
+                                    sexo == "Feminino" ~
+                                            (total_obitos_esperados/104548325) * 100000)) |>   
+  mutate(taxa_mortalidade_pad = round(taxa_mortalidade_pad, 2))
+
+DT::datatable(sim_2022_padronizado)
+
+
+```
+
+Juntando tudo em um só arquivo. 
+
+```{r}
+
+resultado <- rbind(sim_2020_padronizado,
+                   sim_2021_padronizado,
+                   sim_2022_padronizado)
+
+writexl::write_xlsx(resultado, "taxas_padronizadas.xlsx")
 
 ```
 
