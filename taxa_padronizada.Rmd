@@ -62,8 +62,7 @@ sim_2020 <- read_excel("dados/redistribucao_CG_DO_2020.xlsx")
 sim_2020_tratado <- 
   sim_2020 |> 
   mutate(taxa_especifica = (obito/populacao) * 100000) |> 
-  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
-  filter(populacao != "NA")
+  mutate(taxa_especifica = round(taxa_especifica, 4)) 
 
 
 ```
@@ -118,8 +117,7 @@ sim_2021 <- read_excel("dados/redistribucao_CG_DO_2021.xlsx")
 sim_2021_tratado <- 
   sim_2021 |> 
   mutate(taxa_especifica = (obito/populacao) * 100000) |> 
-  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
-  filter(populacao != "NA")
+  mutate(taxa_especifica = round(taxa_especifica, 4)) 
 
 sim_2021_tratado_censo <- 
   sim_2021_tratado |> 
@@ -154,8 +152,7 @@ sim_2022 <- read_excel("dados/redistribucao_CG_DO_2022.xlsx")
 sim_2022_tratado <- 
   sim_2022 |> 
   mutate(taxa_especifica = (obito/populacao) * 100000) |> 
-  mutate(taxa_especifica = round(taxa_especifica, 4)) |> 
-  filter(populacao != "NA")
+  mutate(taxa_especifica = round(taxa_especifica, 4)) 
 
 sim_2022_tratado_censo <- 
   sim_2022_tratado |> 
@@ -189,7 +186,7 @@ resultado <- rbind(sim_2020_padronizado,
                    sim_2021_padronizado,
                    sim_2022_padronizado)
 
-writexl::write_xlsx(resultado, "taxas_padronizadas.xlsx")
+writexl::write_xlsx(resultado, "taxas_padronizadas_correcao.xlsx")
 
 ```
 
